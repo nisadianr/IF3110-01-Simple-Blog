@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Tes Ajax</title>
+</head>
+<body>
+<input id="test">
+<input type="submit" value="Klik" id="tombol">
+
+<script type="text/javascript" src="assets/js/jquery.min.js"></script>
+<script>
+/* // jquery
+$(document).ready(function () {
+	tombol = document.getElementById("tombol");
+	text = document.getElementById("test");
+	tombol.onclick = function() {
+		//alert('ini diklik');
+		$.ajax({
+			url: "testajax.php",
+			type: 'get',
+			data: {
+				nama: text.value
+			},
+			success: function(resp) {
+				text.value = resp;
+			}
+		});
+	}
+});
+*/
+// javascript
+document.addEventListener('DOMContentLoaded', function(){
+	tombol = document.getElementById("tombol");
+	text = document.getElementById("test");
+	tombol.onclick = function() {
+		if(text.value==""){
+			alert('belum diisi semua');
+			return;
+		}
+		resp = confirm('Yakin?');
+		if (!resp) {
+			return;
+		}
+		//alert('ini diklik');
+		request = new XMLHttpRequest();
+		request.open('GET', 'testajax.php?nama=' + text.value, true);
+
+		request.onload = function() {
+		  if (request.status >= 200 && request.status < 400){
+		    // Success!
+		    text.value = request.responseText;
+		  } else {
+		    // We reached our target server, but it returned an error
+
+		  }
+		};
+
+		request.onerror = function() {
+		  // There was a connection error of some sort
+		};
+
+		request.send();
+	}
+});
+</script>
+</body>
+</html>

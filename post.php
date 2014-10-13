@@ -1,7 +1,47 @@
 <!DOCTYPE html>
 <html>
 <head>
+<script>
 
+function validate(id){
+    var email = document.getElementById('Email').value;
+    var nama = document.getElementById('Nama').value;
+    var kom = document.getElementById('Komentar').value;
+    var re = /[a-z]*[@][a-z]*(.[a-z]*)*/;
+    if(email.length==0||nama.length==0||kom.length==0){
+        alert('ada kolom yang masih kosong');
+        return false;
+    }
+    else{
+        if(re.test(email)){
+            send_comment(id);
+        }else{
+            alert('masukan email yang benar');
+            return false;
+        }
+    }
+}
+
+function send_comment(id){
+    var email = document.getElementById('Email').value;
+    var nama = document.getElementById('Nama').value;
+    var kom = document.getElementById('Komentar').value;
+    var xmml_http;
+    if(window.XMLHttpRequest){
+        xmml_http=new XMLHttpRequest();
+    }else{
+        xmml_http=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+
+    xmml_http.onreadystatechange=function(){
+        if (xmml_http.readyState==4&&xmml_http.status==200){
+            document.getElementById("komens").innerHTML=xmml_http.responseText;
+        }
+    }
+    xmml_http.open("GET","add_comment.php?id="+id+"&email="+email+"&nama="+nama+"&komentar="+kom);
+    xmml_http.send();
+}
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -29,9 +69,24 @@
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
 
-<title>Simple Blog | Apa itu Simple Blog?</title>
 
 
+<?php 
+$con=mysqli_connect("localhost","root","","blogdb");
+// Check connection
+if (mysqli_connect_errno()) {
+  echo "Failed to connect to MySQL: " . mysqli_connect_error();
+}
+$Id=$_GET["id"];
+$query = "SELECT * FROM post WHERE ID = $Id";
+$hasil_q= mysqli_query($con,$query) or die(mysql_error());
+if(!$hasil_q){
+    echo "lalala";
+    exit();
+}
+$post = mysqli_fetch_array($hasil_q) ;
+?>
+<title>Simple Blog | <?php echo $post['Judul'] ?> </title>
 </head>
 
 <body class="default">
@@ -48,24 +103,23 @@
     
     <header class="art-header">
         <div class="art-header-inner" style="margin-top: 0px; opacity: 1;">
-            <time class="art-time">15 Juli 2014</time>
-            <h2 class="art-title">Apa itu Simple Blog?</h2>
-            <p class="art-subtitle"></p>
+            <time class="art-time"><?php echo $post['Tanggal']; ?></time>
+            <h2 class="art-title"><?php echo $post['Judul']; ?></h2>
+            <p class="art-subtitle"><?php echo $post['Isi']; ?></p>
         </div>
     </header>
 
     <div class="art-body">
         <div class="art-body-inner">
             <hr class="featured-article" />
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Blanditiis aliquam minus consequuntur amet nulla eius, neque beatae, nostrum possimus, officiis eaque consectetur. Sequi sunt maiores dolore, illum quidem eos explicabo! Lorem ipsum dolor sit amet, consectetur adipisicing elit. Magnam consequuntur consequatur molestiae saepe sed, incidunt sunt inventore minima voluptatum adipisci hic, est ipsa iste. Nobis, aperiam provident quae. Reprehenderit, iste.</p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Asperiores animi tenetur nam delectus eveniet iste non culpa laborum provident minima numquam excepturi rem commodi, officia accusamus eos voluptates obcaecati. Possimus?</p>
+            <p><?php echo $post['Isi']; ?>
 
             <hr />
             
-            <h2>Komentar</h2>
+            <h2>Komentar</h2>   
 
             <div id="contact-area">
-                <form method="post" action="#">
+                <form method="post" >
                     <label for="Nama">Nama:</label>
                     <input type="text" name="Nama" id="Nama">
         
@@ -75,26 +129,44 @@
                     <label for="Komentar">Komentar:</label><br>
                     <textarea name="Komentar" rows="20" cols="20" id="Komentar"></textarea>
 
-                    <input type="submit" name="submit" value="Kirim" class="submit-button">
+                    <?php echo '<input type="button" onClick="validate('.$Id.')" name="submit" value="Kirim" class="submit-button">'; ?>
                 </form>
             </div>
-
             <ul class="art-list-body">
-                <li class="art-list-item">
-                    <div class="art-list-item-title-and-time">
-                        <h2 class="art-list-title"><a href="post.php">Jems</a></h2>
-                        <div class="art-list-time">2 menit lalu</div>
-                    </div>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Perferendis repudiandae quae natus quos alias eos repellendus a obcaecati cupiditate similique quibusdam, atque omnis illum, minus ex dolorem facilis tempora deserunt! &hellip;</p>
-                </li>
+                <?php 
+                    $query="SELECT * FROM komentar WHERE ID_post=$Id ";
+                    $hasil_q= mysqli_query($con,$query) or die(mysql_error());
+                    echo '<div id="komens">';
+                    while($row = mysqli_fetch_array($hasil_q)) {
+                        echo'<li class="art-list-item">
+                        <div class="art-list-item-title-and-time">
+                        <h2 class="art-list-title">' . $row['Nama'] . '</a></h2>
+                        <div class="art-list-time">';
+                        date_default_timezone_set("Asia/Jakarta");
+                        $timekomen=strtotime($row['Waktu']);
+                        $timenow=strtotime(date("Y-m-d H:i:s"));
+                        $delta= $timenow-$timekomen;
+                        $parsed=date_parse(date("H:i:s",$delta));
+                        $second=$parsed['hour']*3600+$parsed['minute']*60+$parsed['second'];
+                        if($second/60<0){
+                            echo $second . ' detik yang lalu';
+                        }else{
+                            if($second/3600<0){
+                                echo $second/60 . ' menit yang lalu';
+                            }else if($second/(3600*24)<0){
+                                echo $second/3600 . 'jam yang lalu';
+                            }
+                            else{
+                                echo $second/(3600*24) . ' hari yang lalu';
+                            }
 
-                <li class="art-list-item">
-                    <div class="art-list-item-title-and-time">
-                        <h2 class="art-list-title"><a href="post.php">Kave</a></h2>
-                        <div class="art-list-time">1 jam lalu</div>
+                        }
+                        echo '<div class="art-list-time"><p>' . $row['Value'] . '</p></div>
                     </div>
-                    <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Perferendis repudiandae quae natus quos alias eos repellendus a obcaecati cupiditate similique quibusdam, atque omnis illum, minus ex dolorem facilis tempora deserunt! &hellip;</p>
-                </li>
+                </li>';
+                }
+                echo '</div>';
+                ?>
             </ul>
         </div>
     </div>

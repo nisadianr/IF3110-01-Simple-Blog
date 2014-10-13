@@ -29,10 +29,7 @@
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
 
-<title>Simple Blog | Tambah Post</title>
-
-
-</head>
+<title>Simple Blog</title>
 <?php
 // Create connection
 $con=mysqli_connect("localhost","root","","blogdb");
@@ -42,58 +39,76 @@ if (mysqli_connect_errno()) {
   echo "Failed to connect to MySQL: " . mysqli_connect_error();
 }
 
+$post = mysqli_query($con,"SELECT * FROM post ORDER BY `Tanggal` DESC");
+
 ?>
+
+<script type="text/javascript">
+function delete_conf(id){
+  resp= confirm('Are you sure?');
+  if(!resp){
+    return;
+  }
+  request = new XMLHttpRequest();
+  request.open('GET', 'delete_post.php?id=' + id, true);
+  request.send();
+  request.onreadystatechange = function() {
+    if (request.status >= 200 && request.status < 400){
+      // Success!
+      if(request.responseText == "ok"){
+        window.location = "index.php";
+      }
+    } else {
+      // We reached our target server, but it returned an error
+
+    }
+    request.onerror = function() {
+    // There was a connection error of some sort
+    };
+  };
+}
+
+</script>
+
+</head>
+
+
+
+
 <body class="default">
 <div class="wrapper">
 
 <nav class="nav">
     <a style="border:none;" id="logo" href="index.php"><h1>Simple<span>-</span>Blog</h1></a>
     <ul class="nav-primary">
-        <li><a href="new_post.php">+ Tambah Post</a></li>
+        <li><a href="new_post.php?id=0">+ Tambah Post</a></li>
     </ul>
 </nav>
 
-<article class="art simple post">
-    
-    
-    <h2 class="art-title" style="margin-bottom:40px">-</h2>
-
-    <div class="art-body">
-        <div class="art-body-inner">
-            <h2>Tambah Post</h2>
-
-            <div id="contact-area">
-                <form method="post" action="#">
-                    <label for="Judul">Judul:</label>
-                    <input type="text" name="Judul" id="<?php $Judul= mysqli_real_escape_string($con, $_POST['Judul']); ?>">
-
-                    <label for="Tanggal">Tanggal:</label>
-                    <input type="text" name="Tanggal" id="<?php $Tanggal= mysqli_real_escape_string($con, $_POST['Tanggal']); ?>">
-                    
-                    <label for="Konten">Konten:</label><br>
-                    <textarea name="Konten" rows="20" cols="20" id="<?php $Isi =mysqli_real_escape_string($con, $_POST['Isi']); ?>"></textarea>
-                    <?php
-                    $sql="INSERT INTO post (Judul, Tanggal, Isi) VALUES ('$Judul', '$Tanggal', '$Isi')";
-                    ?>
-                    <input type="submit" name="submit" value="Simpan" class="submit-button">
-                </form>
-            </div>
-        </div>
+<div id="home">
+    <div class="posts" id="posts">
+        <nav class="art-list">
+          <ul class="art-list-body">
+            <?php while($row = mysqli_fetch_array($post)) {?>
+            <li class="art-list-item">
+                <div class="art-list-item-title-and-time">
+                    <h2 class="art-list-title"><?php echo "<a href=post.php?id=" . $row['ID'] . ">" . $row['Judul']; ?></a></h2>
+                    <div class="art-list-time"><?php echo $row['Tanggal']; ?></div>
+                    <div class="art-list-time"><span style="color:#F40034;">&#10029;</span> Featured</div>
+                </div>
+                <p><?php echo $row['Isi']; $id=$row['ID']; ?></p>
+                <p>
+                  <?php echo "<a href=edit_post.php?id=" . $id . ">Edit</a>";?> | <?php echo '<a href="javascript:delete_conf('. $id .');">Hapus</a>';?>
+                </p>
+                
+            </li>
+            <?php } 
+            mysqli_close($con);
+            ?>
+          </ul>
+        </nav>
     </div>
-
-</article>
-<?php
-if (!mysqli_query($con,$sql)) {
-  die('Error: ' . mysqli_error($con));
-}
-echo "Post berjudul "; ?>
-<b><?php
-echo $Judul;?></b>
-<?php
-echo " sudah berhasil di tambahkan"
-
-mysqli_close($con);
-?>
+</div>
 
 <footer class="footer">
     <div class="back-to-top"><a href="">Back to top</a></div>
@@ -132,4 +147,5 @@ mysqli_close($con);
 </script>
 
 </body>
+
 </html>

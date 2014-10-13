@@ -2,6 +2,46 @@
 <html>
 <head>
 
+<script>
+
+function validate(){
+    var judul = document.getElementById('Judul').value;
+    var tgl = document.getElementById('Tanggal').value;
+    var konten = document.getElementById('Konten').value;
+    if(tgl.length==0 || judul.length==0 || konten==0){
+        alert('masih ada yang kosong');
+        return false;
+    }
+    else{
+        // var regex=^\d{4}[-]\d{1,2}[-]\d{1,2}$;
+        // if(tgl.match(regex)){
+        //     alert('format tanggal salah');
+        //     return false;
+        // }
+        var d = new Date();
+        var d2 = new Date(tgl);
+        var year=d2.getFullYear();
+        var month=d2.getMonth()+1;
+        var date=d2.getDate();
+        if(year<d.getFullYear()){
+            alert('tahun terlalu lama.');
+            return false;
+        }else if(year==d.getFullYear()){
+            if(month<d.getMonth()+1){
+                alert('bulan terlalu lama.');
+                return false;
+            }
+            else if(month==d.getMonth()+1){
+                if(date<d.getDate()){
+                    alert('tanggal terlalu lama.');
+                    return false
+                }
+            }
+        }
+        return true;
+    }
+}
+</script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -29,19 +69,19 @@
     <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 <![endif]-->
 
-<title>Simple Blog | Tambah Post</title>
+<title>Simple Blog | Edit Post</title>
 
 
 </head>
 <?php
-// Create connection
 $con=mysqli_connect("localhost","root","","blogdb");
-
 // Check connection
 if (mysqli_connect_errno()) {
   echo "Failed to connect to MySQL: " . mysqli_connect_error();
 }
-
+$ID=$_GET["id"];
+$hasil=mysqli_query($con,"SELECT * FROM post WHERE id=$ID") or die(mysql_error());
+$tup = mysqli_fetch_array($hasil);
 ?>
 <body class="default">
 <div class="wrapper">
@@ -49,7 +89,7 @@ if (mysqli_connect_errno()) {
 <nav class="nav">
     <a style="border:none;" id="logo" href="index.php"><h1>Simple<span>-</span>Blog</h1></a>
     <ul class="nav-primary">
-        <li><a href="new_post.php">+ Tambah Post</a></li>
+        <li><a href="new_post.php">+ Edit Post</a></li>
     </ul>
 </nav>
 
@@ -60,21 +100,17 @@ if (mysqli_connect_errno()) {
 
     <div class="art-body">
         <div class="art-body-inner">
-            <h2>Tambah Post</h2>
+            <h2>Edit Post</h2>
 
             <div id="contact-area">
-                <form method="post" action="#">
+               <?php echo '<form method="post" onsubmit="return validate()" action="action_edit.php?id='. $_GET['id']. '">'; ?>
                     <label for="Judul">Judul:</label>
-                    <input type="text" name="Judul" id="<?php $Judul= mysqli_real_escape_string($con, $_POST['Judul']); ?>">
-
+                    <?php echo'<input type="text" name="Judul" id="Judul"  value="'. $tup['Judul']. '"/>'; ?>
                     <label for="Tanggal">Tanggal:</label>
-                    <input type="text" name="Tanggal" id="<?php $Tanggal= mysqli_real_escape_string($con, $_POST['Tanggal']); ?>">
+                    <?php echo '<input type="text" name="Tanggal" id="Tanggal" value="' . $tup['Tanggal']. '"/>'; ?>
                     
                     <label for="Konten">Konten:</label><br>
-                    <textarea name="Konten" rows="20" cols="20" id="<?php $Isi =mysqli_real_escape_string($con, $_POST['Isi']); ?>"></textarea>
-                    <?php
-                    $sql="INSERT INTO post (Judul, Tanggal, Isi) VALUES ('$Judul', '$Tanggal', '$Isi')";
-                    ?>
+                    <?php echo '<textarea name="Konten" rows="20" cols="20" id="Konten">' . $tup['Isi'] . '</textarea>'; ?>
                     <input type="submit" name="submit" value="Simpan" class="submit-button">
                 </form>
             </div>
@@ -82,18 +118,6 @@ if (mysqli_connect_errno()) {
     </div>
 
 </article>
-<?php
-if (!mysqli_query($con,$sql)) {
-  die('Error: ' . mysqli_error($con));
-}
-echo "Post berjudul "; ?>
-<b><?php
-echo $Judul;?></b>
-<?php
-echo " sudah berhasil di tambahkan"
-
-mysqli_close($con);
-?>
 
 <footer class="footer">
     <div class="back-to-top"><a href="">Back to top</a></div>
@@ -129,7 +153,7 @@ mysqli_close($con);
       t.src='//www.google-analytics.com/analytics.js';
       z.parentNode.insertBefore(t,z)}(window,document,'script','ga'));
       ga('create',ga_ua);ga('send','pageview');
-</script>
 
+</script>
 </body>
 </html>
