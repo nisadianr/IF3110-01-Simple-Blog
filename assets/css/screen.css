@@ -122,7 +122,7 @@ a:hover {
 .wrapper {
   max-width: 1500px;
   margin: 0 auto;
-  background: #fff;
+  background: url(assets/img/green-splash.png);
 }
 
 /* Containers to keep content to a set width */

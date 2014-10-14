@@ -9,8 +9,9 @@
 	$email=$_GET['email'];
 	$comment=$_GET['komentar'];
 	date_default_timezone_set("Asia/Jakarta");
-	$time=date("Y-m-d H:i:s");
-	$sql = "INSERT INTO komentar (ID_post, Nama, Value, Email, Waktu) VALUES ('$ID','$name','$comment','$email','$time')";
+	$time=date("Y-m-d");
+	$clock=date("H:i:s");
+	$sql = "INSERT INTO komentar (ID_post, Nama, Value, Email, Tanggal, Jam) VALUES ('$ID','$name','$comment','$email','$time','$clock')";
 
 	$a = mysqli_query($con,$sql);
 
@@ -25,24 +26,17 @@
 		    <h2 class="art-list-tit.le">' . $row['Nama'] . '</a></h2>
 		    <div class="art-list-time">';
 		    date_default_timezone_set("Asia/Jakarta");
-            $timekomen=$row['Waktu'];
-            $timenow=date("Y-m-d H:i:s");
-            echo $timenow."hai".<br>;
-            $delta= $timenow-$timekomen;
-            $parsed=date_parse(date("H:i:s",$delta));
-            $second=$parsed['hour']*3600+$parsed['minute']*60+$parsed['second'];
-            if($second/60<0){
-                echo $second . ' detik yang lalu';
-            }else{
-                if($second/3600<0){
-                    echo $second/60 . ' menit yang lalu';
-                }else if($second/(3600*24)<0){
-                    echo $second/3600 . 'jam yang lalu';
-                }
-                else{
-                    echo $second/(3600*24) . ' hari yang lalu';
-                }
+            $tanggal_komen=$row['Tanggal'];
+            $tanggal_sekarang=date("Y-m-d");
+            $jam_komen=$row['Jam'];
+            $jam_sekarang=date("H:i:s");
 
+            if($tanggal_sekarang==$tanggal_komen){
+            	echo 'hari ini';
+            }
+            else
+            {
+            	echo $tanggal_sekarang-$tanggal_komen+1 . " hari yang lalu";
             }
             echo '<div class="art-list-time"><p>' . $row['Value'] . '</p></div>
         </div>
